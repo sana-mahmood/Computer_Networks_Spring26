@@ -1,36 +1,32 @@
 # Assignment 0: Socket Programming
 
-**Due Friday September 16 at 5 pm EST**
+**Due Friday February 6 at 5 pm EST**
 
 **Please make sure to thoroughly read this before getting to the implementation.**
 
-Socket programming is the standard way to write programs that communicate over a network. While originally developed for Unix computers programmed in C, the socket abstraction is general and not tied to any specific operating system or programming language. This allows programmers to use socket to write correct network programs in many contexts. This assignment will give you experience with basic socket programming. **Using C**, you will write one pair of TCP client and server program for sending and receiving text messages over the Internet. The client and server programs should meet the following specifications. 
+Socket programming is the standard method for writing programs that communicate over a network. While originally developed for Unix systems and programmed in C, the socket abstraction is general and independent of both operating systems and programming languages. This abstraction allows programmers to write correct and portable networked applications.
+
+In this assignment, you will gain hands-on experience with basic socket programming. **Using C**, you will implement a pair of TCP programs: a **client** and a **server**, which send and receive messages over the network. Your implementations must satisfy the specifications described below.
 
 ## Server Specifications
 
 * Each server program should listen on a socket, wait for a client to connect, receive a message from the client, print the message to stdout, and then wait for the next client indefinitely.
-
-* Each server should take one command-line argument: the port number to listen on for client connections.
-* Each server should accept and process client communications in an infinite loop, allowing multiple clients to send messages to the same server. The server should only exit in response to an external signal (e.g. SIGINT from pressing ctrl-c).
-
+* Each server should take one command-line argument: the port number to listen on for client connections
+* Each server should accept and process client communications in an infinite loop, allowing multiple clients to send messages to the same server.
 * Each server should maintain a short (10) client queue and handle multiple client connection attempts sequentially. **In real applications, a TCP server would fork a new process to handle each client connection concurrently, but that is NOT necessary for this assignment.**
-
-* Each server should gracefully handle error values potentially returned by socket programming library functions. Errors related to handling client connections should not cause the server to exit after handling the error; all others should.
-
-* Each server should be able to handle very large messages in both alphanumeric and binary format.
+* The server should be able to handle very large messages in both alphanumeric and binary format.
+* The server should only exit in response to an external signal (e.g. SIGINT from pressing ctrl-c).
+* The server should gracefully handle error values potentially returned by socket programming library functions. Errors related to handling client connections should not cause the server to exit after handling the error; all others should.
 
 ## Client Specifications
 
-* Each client program should contact a server, read a message from stdin, send the message, and exit.
-* Each client should read and send the message exactly as it appears in stdin until reaching an EOF (end-of-file).
-
+* Each client program should connect to the server, read a message from stdin, send the message to the server, and exit.
 * Each client should take two command-line arguments: the IP address of the server and the port number of the server.
-
+* Each client should read and send the message exactly as it appears in stdin until reaching an EOF (end-of-file).
 * Each client must be able to handle arbitrarily large messages by iteratively reading and sending chunks of the message, rather than reading the whole message into memory first.
-
 * Each client should handle partial sends (when a socket only transmits part of the data given in the last send call) by attempting to re-send the rest of the data until it has all been sent.
-
 * Each client should gracefully handle error values potentially returned by socket programming library functions.
+* Close the socket before exiting.
 
 ## Getting Started
 
@@ -55,7 +51,7 @@ Make sure that your client and server support the following:
 * Several messages sent concurrently from separate clients to one server
 
 ## Debugging
-Here are some debugging tips. If you are still having trouble, ask a question on Canvas or see an instructor during office hours.
+Here are some debugging tips. If you are still having trouble, ask a question on Piazza or see an instructor during office hours.
 
 * Different OSes might slightly change in the way they implement the systemcalls. As Gradescope uses Ubuntu 18.04, make sure your code also works and covers all the requirements on Ubuntu. For this purpose, you can use [virtualbox](https://www.virtualbox.org/) to setup a virtual machine. https://brb.nci.nih.gov/seqtools/installUbuntu.html provides a useful guide on how to setup virtual machines using virtualbox.
 
