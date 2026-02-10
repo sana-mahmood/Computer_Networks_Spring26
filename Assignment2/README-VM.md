@@ -45,35 +45,6 @@ client ping -c 3 192.168.2.2
 
 We are set if the ping works!
 
-#### Error running scrips (.sh files) or executables (./sr_solution)
-#### Error in running configure.sh or install.sh
-Fix 1:
-Make the files executable by running following sample command for the .sh files and the executale binary file(s). Then try the steps mentioned above again.
-```bash
-chmod +x Computer_Networks_Spring26/Assignment2/configure.sh
-chmod +x Computer_Networks_Spring26/Assignment2/install.sh
-chmod +x Computer_Networks_Spring26/Assignment2/src/run_pox.sh
-chmod +x Computer_Networks_Spring26/Assignment2/src/run_mininet.sh
-chmod +x Computer_Networks_Spring26/Assignment2/src/sr_solution
-```
-
-Fix 2:
-If making files executable does not work, use the following commands to run .sh files (Don't do this before trying the Fix 1).
-```bash
-sudo bash Computer_Networks_Spring26/Assignment2/configure.sh
-sudo bash Computer_Networks_Spring26/Assignment2/install.sh
-cd Computer_Networks_Spring26/Assignment2/src
-bash run_pox.sh
-```
-For running the binary file (sr_solution), after running scrips, cd into the relevant folder and run the following command (once)
-```bash
-sudo install -m 755 sr_solution /usr/local/bin/sr_solution
-```
-After above, you should be able to execute your binary using
-```bash
-sr_solution
-```
-
 ### MAC (M1/M2) users
 
 In the first shell:
@@ -99,6 +70,36 @@ cd Computer_Networks_Spring26/Assignment2/src
 In the second shell (mininet prompt):
 ```bash
 client ping -c 3 192.168.2.2
+```
+
+#### Error running scrips (.sh files) or executables (./sr_solution)
+Fix 1:
+
+Make the files executable by running following sample command for the .sh files and the executale binary file(s). Then try the steps mentioned above again.
+```bash
+chmod +x Computer_Networks_Spring26/Assignment2/configure.sh
+chmod +x Computer_Networks_Spring26/Assignment2/install.sh
+chmod +x Computer_Networks_Spring26/Assignment2/src/run_pox.sh
+chmod +x Computer_Networks_Spring26/Assignment2/src/run_mininet.sh
+chmod +x Computer_Networks_Spring26/Assignment2/src/sr_solution
+```
+
+Fix 2:
+
+If making files executable does not work, use the following commands to run .sh files (Don't do this before trying the Fix 1).
+```bash
+sudo bash Computer_Networks_Spring26/Assignment2/configure.sh
+sudo bash Computer_Networks_Spring26/Assignment2/install.sh
+cd Computer_Networks_Spring26/Assignment2/src
+bash run_pox.sh
+```
+For running the binary file (sr_solution), after running scrips, cd into the relevant folder and run the following command (once)
+```bash
+sudo install -m 755 sr_solution /usr/local/bin/sr_solution
+```
+After above, you should be able to execute your binary using
+```bash
+sr_solution
 ```
 
 
