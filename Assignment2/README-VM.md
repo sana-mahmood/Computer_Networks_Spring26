@@ -1,5 +1,5 @@
 # Instructions for setting up the Multipass environment for A2
-
+Please read the complete document because we provide tips/suggestions to debug common errors.
 ## Launching the VM
 
 1. Clone This repository
@@ -44,6 +44,35 @@ client ping -c 3 192.168.2.2
 ```
 
 We are set if the ping works!
+
+#### Error running scrips (.sh files) or executables (./sr_solution)
+#### Error in running configure.sh or install.sh
+Fix 1:
+Make the files executable by running following sample command for the .sh files and the executale binary file(s). Then try the steps mentioned above again.
+```bash
+chmod +x Computer_Networks_Spring26/Assignment2/configure.sh
+chmod +x Computer_Networks_Spring26/Assignment2/install.sh
+chmod +x Computer_Networks_Spring26/Assignment2/src/run_pox.sh
+chmod +x Computer_Networks_Spring26/Assignment2/src/run_mininet.sh
+chmod +x Computer_Networks_Spring26/Assignment2/src/sr_solution
+```
+
+Fix 2:
+If making files executable does not work, use the following commands to run .sh files (Don't do this before trying the Fix 1).
+```bash
+sudo bash Computer_Networks_Spring26/Assignment2/configure.sh
+sudo bash Computer_Networks_Spring26/Assignment2/install.sh
+cd Computer_Networks_Spring26/Assignment2/src
+bash run_pox.sh
+```
+For running the binary file (sr_solution), after running scrips, cd into the relevant folder and run the following command (once)
+```bash
+sudo install -m 755 sr_solution /usr/local/bin/sr_solution
+```
+After above, you should be able to execute your binary using
+```bash
+sr_solution
+```
 
 ### MAC (M1/M2) users
 
@@ -100,7 +129,7 @@ Now, you will have SSH access to the VM. Using the IP address that you grabbed f
 ssh ubuntu@<ip address>
 ```
 If you see VM's shell, the next step is to set up VSCode. Open your VSCode and install **Remote - SSH** extension. Click on the `><` button on the bottom left corner and select `connect to host...`.
-Then add a new host entry like this: `ubuntu@<VM IP address>` and try connecting to the VM. After the connection is established (usually takes 30 seconds), open the file explorer and select the assignments-spring24 directory. 
+Then add a new host entry like this: `ubuntu@<VM IP address>` and try connecting to the VM. After the connection is established (usually takes 30 seconds), open the file explorer and select the Computer_Networks_Spring26 directory. 
 
 
 See this guide for more information: https://code.visualstudio.com/docs/remote/ssh
@@ -115,7 +144,7 @@ and follow the prompts. Usually, you will want to use the default location and n
 ## Transferring your code from/to the virtual machine
 You can use the following commands to transfer files to and from the VM if you prefer to develop your code locally on your machine.
 
-To use this method, create a private repository for yourself, copy the reposory address and use the following command in the `assignments-spring24` directory inside the VM to add a new remote:
+To use this method, create a private repository for yourself, copy the reposory address and use the following command in the `Computer_Networks_Spring26` directory inside the VM to add a new remote:
 
 ```bash
 git remote add private <your private repository address>
@@ -164,9 +193,9 @@ Q: Do I need to install any software dependencies to use Multipass?
 
 Linux users can install multipass using **snap** which will automatically take care of dependencies. Mac users, similarly, will use brew. Some Windows users might see this warning during Multipass installation: "Oracle Virtualbox is required on Windows Home Edition". If HyperV is unavailable in your system, please follow [this](https://www.virtualbox.org/wiki/Downloads) link to install Virtualbox after installing Multipass. 
 
-Q: I encountered "permission error" when trying to change the existing assignments-spring24/ directory inside the VM.
+Q: I encountered "permission error" when trying to change the existing Computer_Networks_Spring26/ directory inside the VM.
 
-A: In the home of the VM, run: `sudo chown -R ubuntu:ubuntu assignments-spring24`
+A: In the home of the VM, run: `sudo chown -R ubuntu:ubuntu Computer_Networks_Spring26`
 
 ### A note for Windows users who use Virtualbox
 We have noticed that when you are connected to JHU network, the VM will not be assigned an IP address. The easiest workaround is to connect to your mobile hotspot before creating the VM. 

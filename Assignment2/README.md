@@ -46,7 +46,7 @@ The default ```rtable``` should look like this:
 
 First, start the POX controller:
 ```
-$ cd assignments-spring24/Assignment2/src
+$ cd Computer_Networks_Spring26/Assignment2/src
 $ ./run_pox.sh
 ```
 
@@ -55,7 +55,7 @@ You should see output similar to the following:
 
 Keep this terminal open! Next, open a **new terminal** and start the mininet console:
 ```
-$ cd assignments-spring24/Assignment2/src
+$ cd Computer_Networks_Spring26/Assignment2/src
 $ ./run_mininet.sh
 ```
 
@@ -71,14 +71,14 @@ The ```mininet>``` prompt indicates that you are now in the mininet console. Kee
 Now, open yet another **new terminal** to continue with the next step. Now you will test the connectivity of the setup by running the sample solution binary file. If you are running a m1/m2/m3 mac:
 
 ```
-$ cd assignments-spring24/Assignment2/src
+$ cd Computer_Networks_Spring26/Assignment2/src
 $ ./sr_solution_macm
 ```
 
 If you are running Intel mac, Linux, or Windows:
 
 ```
-$ cd assignments-spring24/Assignment2/src
+$ cd Computer_Networks_Spring26/Assignment2/src
 $ ./sr_solution
 ```
 
@@ -125,7 +125,7 @@ If you stop the ```./sr_solution```, you will find the ping/traceroute/wget comm
 You should now have all the pieces needed to build and run the router. You can build and run the starter code as follows:
 
 ```
-$ cd assignments-spring24/Assignment2/src/router
+$ cd Computer_Networks_Spring26/Assignment2/src/router
 $ make
 $ ./sr
 ```
@@ -260,7 +260,7 @@ There are some basic debugging functions in ```sr_utils.h```, ```sr_utils.c```. 
 
 ---
 ## Reference Binary
-To help you debug your topologies and understand the required behavior we provide a reference binary and you can find it at ```assignments-spring24/Assignment2/src/sr_solution``` (and `sr_solution_macm` for ARM Macs) in your directory. Instructions for how to use it are in the [Running the Emulation](#running-the-emulation) section above.
+To help you debug your topologies and understand the required behavior we provide a reference binary and you can find it at ```Computer_Networks_Spring26/Assignment2/src/sr_solution``` (and `sr_solution_macm` for ARM Macs) in your directory. Instructions for how to use it are in the [Running the Emulation](#running-the-emulation) section above.
 
 ---
 ## Requirements Summary
@@ -286,7 +286,7 @@ In addition to your router being able to perform these commands, make sure that 
 
 You will be required to submit a ```README.md``` along with your code for this assignment. In your README, please describe your design decisions. We have provided a ```README.md``` skeleton in the ```/src/router``` folder. The ```README``` will be worth 10% of the assignment grade.
 
-Zip up the files in your ```assignments-spring24/Assignment2/src/router``` folder by running the following command:
+Zip up the files in your ```Computer_Networks_Spring26/Assignment2/src/router``` folder by running the following command:
 
 ```
 $ make clean
