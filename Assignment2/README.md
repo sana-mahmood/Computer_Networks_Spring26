@@ -1,13 +1,13 @@
 # Assignment 2: Simple Router
 
 ### Due Date: March 13th, 5pm
-This assignment is longer than the previous assignments, please start early. Please adhere to the [Submission Instructions](#submission-instructions) below.
+This assignment is longer than the previous assignments, please start early. Please adhere to the [Submission Instructions](#submission-instructions) below. Please ensure your environment is setup as early as possible (instructions below).
 
 ---
 ## Introduction
-In this assignment you will be writing a simple router with a static routing table. Your router will receive raw Ethernet frames. It will process the packets just like a real router, then forward them to the correct outgoing interface. We’ll make sure you receive the Ethernet frames; your job is to create the forwarding logic so packets go to the correct interface.
+In this assignment, you will implement a simple router with a static routing table. The router will receive raw Ethernet frames, process them as a real router would, and forward them through the correct outgoing interface. The Ethernet frames will be delivered to your router; your responsibility is to implement the forwarding logic so that packets are sent to the appropriate interface.
 
-Your router will route real packets from an emulated host (client) to two emulated application servers (http server 1 and 2) sitting behind your router. The application servers are each running an HTTP server. When you have finished the forwarding path of your router, you should be able to access these servers using regular client software. In addition, you should be able to ping and traceroute to and through a functioning Internet router.
+Your router will handle real packets sent from an emulated host (client) to two emulated application servers (HTTP Server 1 and HTTP Server 2) located behind the router. Each application server runs an HTTP service. After completing the forwarding functionality, you should be able to access these servers using standard client software. Additionally, your router should support ping and traceroute operations to, and through, a functioning Internet router.
 
 ![simple-topo](img/topo.png)
 
@@ -18,13 +18,13 @@ If the router is functioning correctly, all of the following operations should w
 - Traceroute from the client to any of the app servers
 - Downloading a file using HTTP from one of the app servers
 
-Detailed requirements are outlined below.
+This list is not exhaustive. Detailed requirements are provided below.
 
 ---
 ## Getting Started
 This assignment runs on top of [Mininet](http://mininet.org), which allows you to emulate a topology on a single machine. It provides the needed isolation between the emulated nodes so that your router node can process and forward real Ethernet frames between the hosts like a real router.
 
-We have set up Mininet on a custom Multipass VM for this assignment. This VM is different from the one provided in previous assignments, and **you should use this VM to test your code for the assignment**. This assignment assumes that you have already downloaded and installed the Multipass VM. Refer to README-VM.md for instructions on how to set up the VM. **Make sure your environment is set up and working properly before continuing!**
+We have set up Mininet on a custom Multipass VM for this assignment. This VM is different from the one provided in previous assignments, and **you should use this VM to test your code for the assignment**. This assignment assumes that you have already downloaded and installed the Multipass VM. Refer to **README-VM.md** for instructions on how to set up the VM. **Make sure your environment is set up and working properly before continuing!**
 
 ### Configuration Files
 There are two configuration files for the router.
