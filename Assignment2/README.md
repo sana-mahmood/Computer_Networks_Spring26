@@ -97,6 +97,7 @@ The following is an example command that issues 3 pings from the client to serve
 mininet> client ping -c 3 192.168.2.2
 ```
 Example output:
+
 ![ping](img/example_ping.png)
 
 ### Test Traceroute
@@ -105,6 +106,7 @@ The following is an example traceroute to see the route betwen client and server
 mininet> client traceroute -n 192.168.2.2
 ```
 Example output:
+
 ![traceroute](img/example_traceroute.png)
 
 ### Test Webserver
@@ -113,6 +115,7 @@ The following is an example HTTP request issued by using wget to test the web se
 mininet> client wget http://192.168.2.2
 ```
 Example output:
+
 ![wget](img/example_wget.png)
 
 If you stop the ```./sr_solution```, you will find the ping/traceroute/wget commands will not work anymore. In this assignment, your goal is to replicate the functionality of ```sr_solution```. To help you get started, we provide some starter code described in the following sections.
@@ -134,58 +137,63 @@ Everytime you would like to test your router, you must run the Mininet console a
 
 ---
 ## Protocols
-There are two main parts to this assignment: IP forwarding, and handling address resolution (ARP). The helpful protocols and steps to familiarize yourself with are outlined below.
+his assignment has two main components: **IP forwarding** and **handling address resolution (ARP)**. The following sections outline the protocols and procedures you need to understand.
 
 ### Ethernet
-Your router is given a raw Ethernet frame and your router must send raw Ethernet frames. The headers contain source and destination MAC addresses, and to forward a packet one hop, we must change the destination MAC address of the forwarded packet to the MAC address of the next hop’s incoming interface.
+Your router receives raw Ethernet frames and must send raw Ethernet frames. Ethernet headers contain source and destination MAC addresses. To forward a packet one hop, you must update the destination MAC address in the forwarded packet to match the MAC address of the next hop's incoming interface.
 
 ### Internet Protocol (IP)
-Before operating on an IP packet, you should verify its checksum and make sure it meets the minimum length of an IP packet. You should understand how to find the longest prefix match of a destination IP address in the routing table. If you determine that a datagram should be forwarded, you should correctly decrement the TTL field of the header and recompute the checksum over the changed header before forwarding it to the next hop.
+Before processing an IP packet, verify its checksum and ensure it meets the minimum length requirement. You need to understand how to find the longest prefix match for a destination IP address in the routing table. When forwarding a datagram, decrement the TTL field by 1 and recompute the checksum over the modified header before sending it to the next hop.
 
 #### IP Forwarding Logic
-Given a raw Ethernet frame, if the frame contains an IP packet that is not destined for one of our interfaces:
+When you receive a raw Ethernet frame containing an IP packet not destined for one of your router's interfaces, follow these steps:
 
-- Sanity-check the packet: check that it meets minimum length and has the correct checksum.
-- Decrement the TTL by 1 and recompute the packet checksum over the modified header.
-  - If TTL is expired, send an ICMP time exceeded (type 11) message.
-- Find out which entry in the routing table has the longest prefix match with the destination IP address.
-- Check the ARP cache for the next-hop MAC address corresponding to the next-hop IP.
-  - If ARP entry is there, forward the IP packet.
-  - Otherwise, send an ARP request for the next-hop IP (if one hasn’t been sent within the last second), and add the packet to the queue of packets waiting on this ARP request.
+- **Sanity-check the packet:** Verify it meets the minimum length requirement and has a correct checksum.
+- **Update TTL:** Decrement the TTL by 1 and recompute the packet checksum over the modified header.
+  - If the TTL expires (reaches 0), send an ICMP time exceeded message (type 11, code 0).
+- **Find the route:** Determine which routing table entry has the longest prefix match with the destination IP address.
+- **Check ARP cache:** Look up the next-hop MAC address corresponding to the next-hop IP address.
+  - If found: Forward the IP packet.
+  - If not found: Send an ARP request for the next-hop IP (if one hasn't been sent within the last second), and add the packet to the queue of packets waiting on this ARP request.
 
-If an error occurs in any of the above steps, you will have to send an ICMP message back to the sender notifying them of an error.
+**Note:** If an error occurs in any step, send an ICMP message back to the sender notifying them of the error.
 
 #### IP Packet Destinations
-An incoming IP packet may be destined for one of your router’s IP addresses, or it may be destined elsewhere. If it is sent to one of your router’s IP addresses, you should take the following actions:
+An incoming IP packet may be destined for one of your router's IP addresses or for another destination. Handle each case as follows:
 
-- If the packet is an ICMP echo request (type 8) and its checksum is valid, send an ICMP echo reply (type 0) to the sending host.
-- If the packet contains a TCP or UDP payload, send an ICMP port unreachable (type 3, code 3) to the sending host. Otherwise, ignore the packet.
-- Packets destined elsewhere should be forwarded using the forwarding logic above.
+1. **Packets Destined for Your Router**
+  - ICMP echo request (type 8) with valid checksum: Send an ICMP echo reply (type 0) to the sending host.
+  - TCP or UDP payload: Send an ICMP port unreachable message (type 3, code 3) to the sending host.
+  - All other packets: Ignore the packet.
+
+2. **Packets Destined Elsewhere**
+  - Forward using the IP forwarding logic described above.
 
 ### Internet Control Message Protocol (ICMP)
 ICMP is a simple protocol that can send control information to a host. In this assignment, your router will use ICMP to send messages back to the sending host. You will need to properly generate the following ICMP messages (including the ICMP header checksum) in response to the sending host under the following conditions:
 
-- **Echo reply (type 0)**
+ICMP allows your router to send control information back to hosts. You must properly generate the following ICMP messages (including correct ICMP header checksums) under these conditions:ICMP allows your router to send control information back to hosts. You must properly generate the following ICMP messages (including correct ICMP header checksums) under these conditions:
 
-  Sent in response to an echo request (ICMP type 8) to one of the router’s interfaces. This is only for echo requests to one of our interfaces (to any of the router’s known IPs). This is needed for ping to work. An echo request sent elsewhere (e.g. not to one of our interfaces) should be forwarded to the next hop address as usual.
+- **Echo reply (type 0)**
+  - When: In response to an echo request (type 8) sent to one of your router's interfaces.
+  - Purpose: Enables ping to work.
+  - Note: Echo requests to other destinations should be forwarded normally.
 
 - **Destination net unreachable (type 3, code 0)**
-
-  Sent if there is a non-existent route to the destination IP (no matching entry in routing table when forwarding an IP packet).
+  - When: No matching routing table entry exists for the destination IP address.
 
 - **Destination host unreachable (type 3, code 1)**
-
-  Sent if five ARP requests were sent to the next-hop IP without a response.
+  - When: Five ARP requests to the next-hop IP are sent without receiving a response.
 
 - **Port unreachable (type 3, code 3)**
-
-  Sent if an IP packet containing a UDP or TCP payload is sent to one of the router’s interfaces. This is needed for traceroute to work.
+  - When: An IP packet containing a TCP or UDP payload is sent to one of your router's interfaces.
+  - Purpose: Enables traceroute to work.
 
 - **Time exceeded (type 11, code 0)**
+  - When: An IP packet is discarded because its TTL field reaches 0.
+  - Purpose: Also enables traceroute to work.
 
-  Sent if an IP packet is discarded during processing because the TTL field is 0. This is also needed for traceroute to work.
-
-The source address of an ICMP message can be the source address of any of the incoming interfaces, as specified in [RFC 792](https://tools.ietf.org/html/rfc792). As mentioned above, the only incoming ICMP messages destined towards the router’s IPs that you have to explicitly process are ICMP echo requests (type 8).
+Note: The source address of an ICMP message can be the source address of any of the router's incoming interfaces (per [RFC 792](https://tools.ietf.org/html/rfc792). The only incoming ICMP messages destined to your router that you must explicitly process are ICMP echo requests (type 8).
 
 <!-- You may want to create additional structs for ICMP messages for convenience, but make sure to use the packed attribute so that the compiler doesn’t try to align the fields in the struct to word boundaries. -->
 
