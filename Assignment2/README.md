@@ -198,13 +198,22 @@ Note: The source address of an ICMP message can be the source address of any of 
 <!-- You may want to create additional structs for ICMP messages for convenience, but make sure to use the packed attribute so that the compiler doesn’t try to align the fields in the struct to word boundaries. -->
 
 ### Address Resolution Protocol (ARP)
-ARP is needed to determine the next-hop MAC address that corresponds to the next-hop IP address stored in the routing table. Without the ability to generate an ARP request and process ARP replies, your router would not be able to fill out the destination MAC address field of the raw Ethernet frame you are sending over the outgoing interface. Analogously, without the ability to process ARP requests and generate ARP replies, no other router could send your router Ethernet frames. Therefore, your router must generate and process ARP requests and replies.
+ARP is needed to determine the next-hop MAC address that corresponds to the next-hop IP address stored in the routing table. Without the ability to generate ARP requests and process ARP replies, your router would not be able to fill out the destination MAC address field of the raw Ethernet frame you are sending over the outgoing interface. Analogously, without the ability to process ARP requests and generate ARP replies, no other router could send your router Ethernet frames. Therefore, your router must generate and process both ARP requests and replies.
 
-To lessen the number of ARP requests sent out, you are required to cache ARP replies. Cache entries should time out after 15 seconds to minimize staleness. The provided ARP cache class already times the entries out for you. When forwarding a packet to a next-hop IP address, the router should first check the ARP cache for the corresponding MAC address before sending an ARP request. In the case of a cache miss, an ARP request should be sent to a target IP address about once every second until a reply comes in. If the ARP request is sent five times with no reply, an ICMP destination host unreachable is sent back to the source IP as stated above. The provided ARP request queue will help you manage the request queue.
+- **ARP Cache:** To limit the number of ARP requests sent out by your router, you are required to cache ARP replies. Cache entries should timeout after 15 seconds to minimize staleness. The provided ARP cache class already times the entries out for you.
+- **Generate ARP Request:** When forwarding a packet to a next-hop IP address, follow this process:
+  - Check the ARP cache first for the corresponding MAC address.
+  - On cache miss: Send an ARP request to the target IP address.
+    - Send requests approximately once per second until a reply is received.
+    - If no reply after 5 requests, send an ICMP destination host unreachable message (type 3, code 1) back to the source IP.
+    - Use the provided ARP request queue to manage pending requests.
+- **Processing ARP Messages**
+  - When you receive an ARP request: Only send an ARP reply if the target IP address matches one of your router's IP addresses.
+  - When you receive an ARP reply: Only cache the entry if the target IP address matches one of your router's IP addresses.
 
-In the case of an ARP request, you should only send an ARP reply if the target IP address is one of your router’s IP addresses. In the case of an ARP reply, you should only cache the entry if the target IP address is one of your router’s IP addresses.
-
-Note that ARP requests are sent to the broadcast MAC address (```ff-ff-ff-ff-ff-ff```). ARP replies are sent directly to the requester’s MAC address.
+- **ARP Message Format:**
+  - ARP requests are sent to the broadcast MAC address (ff-ff-ff-ff-ff-ff).
+  - ARP replies are sent directly to the requester's MAC address.
 
 ---
 ## Code Overview
@@ -272,7 +281,7 @@ To help you debug your topologies and understand the required behavior we provid
 
 ---
 ## Requirements Summary
-Please checkout the tutorial slides for a complete checklist of what we test for this assignment. In summary:
+Please check out the tutorial slides for a checklist of what we test for this assignment. In summary:
 - The router must successfully route packets between the Internet and the application servers.
 - The router must correctly handle ARP requests and replies.
 - The router must respond correctly to ICMP echo requests (ping commands).
@@ -280,7 +289,7 @@ Please checkout the tutorial slides for a complete checklist of what we test for
 - The router must handle TCP/UDP packets sent to one of its interfaces. In this case, the router should respond with an ICMP port unreachable (type 3, code 3).
 - The router must maintain an ARP cache whose entries are invalidated after a timeout period (15 seconds).
 - The router must queue all packets waiting for outstanding ARP replies. If a host does not respond to 5 ARP requests, the queued packet is dropped and an ICMP host unreachable message (type 3, code 1) is sent back to the source of the queued packet.
-- The router must enforce guarantees on timeouts - that is, if an ARP request is not responded to within a fixed period of time, the ICMP host unreachable message (echo 3, code 1) is generated even if no more packets arrive at the router. (Note: You can guarantee this by implementing the ```sr_arpcache_sweepreqs()``` function in ```sr_arpcache.c``` correctly.)
+- The router must enforce guarantees on timeouts - that is, if an ARP request is not responded to within a fixed period of time, the ICMP host unreachable message (type 3, code 1) is generated even if no more packets arrive at the router. (Note: You can guarantee this by implementing the ```sr_arpcache_sweepreqs()``` function in ```sr_arpcache.c``` correctly.)
 - The router must not needlessly drop packets (for example, when waiting for an ARP reply)
 
 ---
