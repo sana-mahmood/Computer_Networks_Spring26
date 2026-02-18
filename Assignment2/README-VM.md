@@ -72,12 +72,13 @@ In the second shell (mininet prompt):
 client ping -c 3 192.168.2.2
 ```
 
-#### Error running scrips (.sh files) or executables (./sr_solution)
+### Error running scrips (.sh files) or executables (./sr_solution)
 Fix 1:
 
 Make the files executable by running following sample command for the .sh files and the executale binary file(s). Then try the steps mentioned above again.
 ```bash
 chmod +x Computer_Networks_Spring26/Assignment2/configure.sh
+chmod +x Computer_Networks_Spring26/Assignment2/configure-arm.sh
 chmod +x Computer_Networks_Spring26/Assignment2/install.sh
 chmod +x Computer_Networks_Spring26/Assignment2/src/run_pox.sh
 chmod +x Computer_Networks_Spring26/Assignment2/src/run_mininet.sh

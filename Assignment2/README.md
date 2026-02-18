@@ -1,13 +1,13 @@
 # Assignment 2: Simple Router
 
 ### Due Date: March 13th, 5pm
-This assignment is longer than the previous assignments, please start early. Please adhere to the [Submission Instructions](#submission-instructions) below.
+This assignment is longer than the previous assignments, please start early. Please adhere to the [Submission Instructions](#submission-instructions) below. Please ensure your environment is setup as early as possible (instructions below).
 
 ---
 ## Introduction
-In this assignment you will be writing a simple router with a static routing table. Your router will receive raw Ethernet frames. It will process the packets just like a real router, then forward them to the correct outgoing interface. We’ll make sure you receive the Ethernet frames; your job is to create the forwarding logic so packets go to the correct interface.
+In this assignment, you will implement a simple router with a static routing table. The router will receive raw Ethernet frames, process them as a real router would, and forward them through the correct outgoing interface. The Ethernet frames will be delivered to your router; your responsibility is to implement the forwarding logic so that packets are sent to the appropriate interface.
 
-Your router will route real packets from an emulated host (client) to two emulated application servers (http server 1 and 2) sitting behind your router. The application servers are each running an HTTP server. When you have finished the forwarding path of your router, you should be able to access these servers using regular client software. In addition, you should be able to ping and traceroute to and through a functioning Internet router.
+Your router will handle real packets sent from an emulated host (client) to two emulated application servers (HTTP Server 1 and HTTP Server 2) located behind the router. Each application server runs an HTTP service. After completing the forwarding functionality, you should be able to access these servers using standard client software. Additionally, your router should support ping and traceroute operations to, and through, a functioning Internet router.
 
 ![simple-topo](img/topo.png)
 
@@ -18,13 +18,13 @@ If the router is functioning correctly, all of the following operations should w
 - Traceroute from the client to any of the app servers
 - Downloading a file using HTTP from one of the app servers
 
-Detailed requirements are outlined below.
+This list is not exhaustive. Detailed requirements are provided below.
 
 ---
 ## Getting Started
 This assignment runs on top of [Mininet](http://mininet.org), which allows you to emulate a topology on a single machine. It provides the needed isolation between the emulated nodes so that your router node can process and forward real Ethernet frames between the hosts like a real router.
 
-We have set up Mininet on a custom Multipass VM for this assignment. This VM is different from the one provided in previous assignments, and **you should use this VM to test your code for the assignment**. This assignment assumes that you have already downloaded and installed the Multipass VM. Refer to README-VM.md for instructions on how to set up the VM. **Make sure your environment is set up and working properly before continuing!**
+We have set up Mininet on a custom Multipass VM for this assignment. This VM is different from the one provided in previous assignments, and **you should use this VM to test your code for the assignment**. This assignment assumes that you have already downloaded and installed the Multipass VM. Refer to **README-VM.md** for instructions on how to set up the VM. **Make sure your environment is set up and working properly before continuing!**
 
 ### Configuration Files
 There are two configuration files for the router.
@@ -97,6 +97,7 @@ The following is an example command that issues 3 pings from the client to serve
 mininet> client ping -c 3 192.168.2.2
 ```
 Example output:
+
 ![ping](img/example_ping.png)
 
 ### Test Traceroute
@@ -105,6 +106,7 @@ The following is an example traceroute to see the route betwen client and server
 mininet> client traceroute -n 192.168.2.2
 ```
 Example output:
+
 ![traceroute](img/example_traceroute.png)
 
 ### Test Webserver
@@ -113,6 +115,7 @@ The following is an example HTTP request issued by using wget to test the web se
 mininet> client wget http://192.168.2.2
 ```
 Example output:
+
 ![wget](img/example_wget.png)
 
 If you stop the ```./sr_solution```, you will find the ping/traceroute/wget commands will not work anymore. In this assignment, your goal is to replicate the functionality of ```sr_solution```. To help you get started, we provide some starter code described in the following sections.
@@ -134,69 +137,83 @@ Everytime you would like to test your router, you must run the Mininet console a
 
 ---
 ## Protocols
-There are two main parts to this assignment: IP forwarding, and handling address resolution (ARP). The helpful protocols and steps to familiarize yourself with are outlined below.
+his assignment has two main components: **IP forwarding** and **handling address resolution (ARP)**. The following sections outline the protocols and procedures you need to understand.
 
 ### Ethernet
-Your router is given a raw Ethernet frame and your router must send raw Ethernet frames. The headers contain source and destination MAC addresses, and to forward a packet one hop, we must change the destination MAC address of the forwarded packet to the MAC address of the next hop’s incoming interface.
+Your router receives raw Ethernet frames and must send raw Ethernet frames. Ethernet headers contain source and destination MAC addresses. To forward a packet one hop, you must update the destination MAC address in the forwarded packet to match the MAC address of the next hop's incoming interface.
 
 ### Internet Protocol (IP)
-Before operating on an IP packet, you should verify its checksum and make sure it meets the minimum length of an IP packet. You should understand how to find the longest prefix match of a destination IP address in the routing table. If you determine that a datagram should be forwarded, you should correctly decrement the TTL field of the header and recompute the checksum over the changed header before forwarding it to the next hop.
+Before processing an IP packet, verify its checksum and ensure it meets the minimum length requirement. You need to understand how to find the longest prefix match for a destination IP address in the routing table. When forwarding a datagram, decrement the TTL field by 1 and recompute the checksum over the modified header before sending it to the next hop.
 
 #### IP Forwarding Logic
-Given a raw Ethernet frame, if the frame contains an IP packet that is not destined for one of our interfaces:
+When you receive a raw Ethernet frame containing an IP packet not destined for one of your router's interfaces, follow these steps:
 
-- Sanity-check the packet: check that it meets minimum length and has the correct checksum.
-- Decrement the TTL by 1 and recompute the packet checksum over the modified header.
-  - If TTL is expired, send an ICMP time exceeded (type 11) message.
-- Find out which entry in the routing table has the longest prefix match with the destination IP address.
-- Check the ARP cache for the next-hop MAC address corresponding to the next-hop IP.
-  - If ARP entry is there, forward the IP packet.
-  - Otherwise, send an ARP request for the next-hop IP (if one hasn’t been sent within the last second), and add the packet to the queue of packets waiting on this ARP request.
+- **Sanity-check the packet:** Verify it meets the minimum length requirement and has a correct checksum.
+- **Update TTL:** Decrement the TTL by 1 and recompute the packet checksum over the modified header.
+  - If the TTL expires (reaches 0), send an ICMP time exceeded message (type 11, code 0).
+- **Find the route:** Determine which routing table entry has the longest prefix match with the destination IP address.
+- **Check ARP cache:** Look up the next-hop MAC address corresponding to the next-hop IP address.
+  - If found: Forward the IP packet.
+  - If not found: Send an ARP request for the next-hop IP (if one hasn't been sent within the last second), and add the packet to the queue of packets waiting on this ARP request.
 
-If an error occurs in any of the above steps, you will have to send an ICMP message back to the sender notifying them of an error.
+**Note:** If an error occurs in any step, send an ICMP message back to the sender notifying them of the error.
 
 #### IP Packet Destinations
-An incoming IP packet may be destined for one of your router’s IP addresses, or it may be destined elsewhere. If it is sent to one of your router’s IP addresses, you should take the following actions:
+An incoming IP packet may be destined for one of your router's IP addresses or for another destination. Handle each case as follows:
 
-- If the packet is an ICMP echo request (type 8) and its checksum is valid, send an ICMP echo reply (type 0) to the sending host.
-- If the packet contains a TCP or UDP payload, send an ICMP port unreachable (type 3, code 3) to the sending host. Otherwise, ignore the packet.
-- Packets destined elsewhere should be forwarded using the forwarding logic above.
+1. **Packets Destined for Your Router**
+  - ICMP echo request (type 8) with valid checksum: Send an ICMP echo reply (type 0) to the sending host.
+  - TCP or UDP payload: Send an ICMP port unreachable message (type 3, code 3) to the sending host.
+  - All other packets: Ignore the packet.
+
+2. **Packets Destined Elsewhere**
+  - Forward using the IP forwarding logic described above.
 
 ### Internet Control Message Protocol (ICMP)
 ICMP is a simple protocol that can send control information to a host. In this assignment, your router will use ICMP to send messages back to the sending host. You will need to properly generate the following ICMP messages (including the ICMP header checksum) in response to the sending host under the following conditions:
 
-- **Echo reply (type 0)**
+ICMP allows your router to send control information back to hosts. You must properly generate the following ICMP messages (including correct ICMP header checksums) under these conditions:ICMP allows your router to send control information back to hosts. You must properly generate the following ICMP messages (including correct ICMP header checksums) under these conditions:
 
-  Sent in response to an echo request (ICMP type 8) to one of the router’s interfaces. This is only for echo requests to one of our interfaces (to any of the router’s known IPs). This is needed for ping to work. An echo request sent elsewhere (e.g. not to one of our interfaces) should be forwarded to the next hop address as usual.
+- **Echo reply (type 0)**
+  - When: In response to an echo request (type 8) sent to one of your router's interfaces.
+  - Purpose: Enables ping to work.
+  - Note: Echo requests to other destinations should be forwarded normally.
 
 - **Destination net unreachable (type 3, code 0)**
-
-  Sent if there is a non-existent route to the destination IP (no matching entry in routing table when forwarding an IP packet).
+  - When: No matching routing table entry exists for the destination IP address.
 
 - **Destination host unreachable (type 3, code 1)**
-
-  Sent if five ARP requests were sent to the next-hop IP without a response.
+  - When: Five ARP requests to the next-hop IP are sent without receiving a response.
 
 - **Port unreachable (type 3, code 3)**
-
-  Sent if an IP packet containing a UDP or TCP payload is sent to one of the router’s interfaces. This is needed for traceroute to work.
+  - When: An IP packet containing a TCP or UDP payload is sent to one of your router's interfaces.
+  - Purpose: Enables traceroute to work.
 
 - **Time exceeded (type 11, code 0)**
+  - When: An IP packet is discarded because its TTL field reaches 0.
+  - Purpose: Also enables traceroute to work.
 
-  Sent if an IP packet is discarded during processing because the TTL field is 0. This is also needed for traceroute to work.
-
-The source address of an ICMP message can be the source address of any of the incoming interfaces, as specified in [RFC 792](https://tools.ietf.org/html/rfc792). As mentioned above, the only incoming ICMP messages destined towards the router’s IPs that you have to explicitly process are ICMP echo requests (type 8).
+Note: The source address of an ICMP message can be the source address of any of the router's incoming interfaces (per [RFC 792](https://tools.ietf.org/html/rfc792). The only incoming ICMP messages destined to your router that you must explicitly process are ICMP echo requests (type 8).
 
 <!-- You may want to create additional structs for ICMP messages for convenience, but make sure to use the packed attribute so that the compiler doesn’t try to align the fields in the struct to word boundaries. -->
 
 ### Address Resolution Protocol (ARP)
-ARP is needed to determine the next-hop MAC address that corresponds to the next-hop IP address stored in the routing table. Without the ability to generate an ARP request and process ARP replies, your router would not be able to fill out the destination MAC address field of the raw Ethernet frame you are sending over the outgoing interface. Analogously, without the ability to process ARP requests and generate ARP replies, no other router could send your router Ethernet frames. Therefore, your router must generate and process ARP requests and replies.
+ARP is needed to determine the next-hop MAC address that corresponds to the next-hop IP address stored in the routing table. Without the ability to generate ARP requests and process ARP replies, your router would not be able to fill out the destination MAC address field of the raw Ethernet frame you are sending over the outgoing interface. Analogously, without the ability to process ARP requests and generate ARP replies, no other router could send your router Ethernet frames. Therefore, your router must generate and process both ARP requests and replies.
 
-To lessen the number of ARP requests sent out, you are required to cache ARP replies. Cache entries should time out after 15 seconds to minimize staleness. The provided ARP cache class already times the entries out for you. When forwarding a packet to a next-hop IP address, the router should first check the ARP cache for the corresponding MAC address before sending an ARP request. In the case of a cache miss, an ARP request should be sent to a target IP address about once every second until a reply comes in. If the ARP request is sent five times with no reply, an ICMP destination host unreachable is sent back to the source IP as stated above. The provided ARP request queue will help you manage the request queue.
+- **ARP Cache:** To limit the number of ARP requests sent out by your router, you are required to cache ARP replies. Cache entries should timeout after 15 seconds to minimize staleness. The provided ARP cache class already times the entries out for you.
+- **Generate ARP Request:** When forwarding a packet to a next-hop IP address, follow this process:
+  - Check the ARP cache first for the corresponding MAC address.
+  - On cache miss: Send an ARP request to the target IP address.
+    - Send requests approximately once per second until a reply is received.
+    - If no reply after 5 requests, send an ICMP destination host unreachable message (type 3, code 1) back to the source IP.
+    - Use the provided ARP request queue to manage pending requests.
+- **Processing ARP Messages**
+  - When you receive an ARP request: Only send an ARP reply if the target IP address matches one of your router's IP addresses.
+  - When you receive an ARP reply: Only cache the entry if the target IP address matches one of your router's IP addresses.
 
-In the case of an ARP request, you should only send an ARP reply if the target IP address is one of your router’s IP addresses. In the case of an ARP reply, you should only cache the entry if the target IP address is one of your router’s IP addresses.
-
-Note that ARP requests are sent to the broadcast MAC address (```ff-ff-ff-ff-ff-ff```). ARP replies are sent directly to the requester’s MAC address.
+- **ARP Message Format:**
+  - ARP requests are sent to the broadcast MAC address (ff-ff-ff-ff-ff-ff).
+  - ARP replies are sent directly to the requester's MAC address.
 
 ---
 ## Code Overview
@@ -264,7 +281,7 @@ To help you debug your topologies and understand the required behavior we provid
 
 ---
 ## Requirements Summary
-Please checkout the tutorial slides for a complete checklist of what we test for this assignment. In summary:
+Please check out the tutorial slides for a checklist of what we test for this assignment. In summary:
 - The router must successfully route packets between the Internet and the application servers.
 - The router must correctly handle ARP requests and replies.
 - The router must respond correctly to ICMP echo requests (ping commands).
@@ -272,7 +289,7 @@ Please checkout the tutorial slides for a complete checklist of what we test for
 - The router must handle TCP/UDP packets sent to one of its interfaces. In this case, the router should respond with an ICMP port unreachable (type 3, code 3).
 - The router must maintain an ARP cache whose entries are invalidated after a timeout period (15 seconds).
 - The router must queue all packets waiting for outstanding ARP replies. If a host does not respond to 5 ARP requests, the queued packet is dropped and an ICMP host unreachable message (type 3, code 1) is sent back to the source of the queued packet.
-- The router must enforce guarantees on timeouts - that is, if an ARP request is not responded to within a fixed period of time, the ICMP host unreachable message (echo 3, code 1) is generated even if no more packets arrive at the router. (Note: You can guarantee this by implementing the ```sr_arpcache_sweepreqs()``` function in ```sr_arpcache.c``` correctly.)
+- The router must enforce guarantees on timeouts - that is, if an ARP request is not responded to within a fixed period of time, the ICMP host unreachable message (type 3, code 1) is generated even if no more packets arrive at the router. (Note: You can guarantee this by implementing the ```sr_arpcache_sweepreqs()``` function in ```sr_arpcache.c``` correctly.)
 - The router must not needlessly drop packets (for example, when waiting for an ARP reply)
 
 ---
