@@ -25,7 +25,7 @@
 - uint32_t ip_src, (set to ip of our interface or outgoing interface based on whether the original packet was destined for us or not)
 - unint32_t ip_dst; (set to original packet’s ip_src )
 
-###struct sr_ethernet_hdr
+### struct sr_ethernet_hdr
 - uint8_t  ether_dhost[ETHER_ADDR_LEN]; (set to original packet’s ether_shost)
 - uint8_t  ether_shost[ETHER_ADDR_LEN];  (set to outgoing interface’s addr)
 - uint16_t ether_type;  (set to ethertype_ip)
